@@ -32,7 +32,8 @@ mongoose
 // Schema and Model
 const formSchema = new mongoose.Schema({
   name: String,
-  email: String,
+  email: { type: String, unique: true },
+  phone: { type: String, unique: true },
   address1: String,
   address2: String,
   address3: String,
@@ -48,18 +49,40 @@ const formSchema = new mongoose.Schema({
 
 const Form = mongoose.model("Form", formSchema);
 
+
 // Routes
 app.post("/submit-form", async (req, res) => {
-    try {
-      const newForm = new Form(req.body);
-      await newForm.save();
-      res.status(200).send("Form submitted successfully");
-    } catch (error) {
-      console.error("Error saving form data:", error);
-      res.status(500).send("Failed to submit form");
+  try {
+    const { email, phone } = req.body;
+
+    // Check if the email or phone number already exists in the database
+    const existingForm = await Form.findOne({
+      $or: [{ email }, { phone }],
+    });
+
+    if (existingForm) {
+      let errorMessage = "";
+      if (existingForm.email === email) {
+        errorMessage += "Email is already registered. ";
+      }
+      if (existingForm.phone === phone) {
+        errorMessage += "Phone number is already registered.";
+      }
+      return res.status(400).send(errorMessage.trim());
     }
-  });
-  
+
+    // Create a new form entry
+    const newForm = new Form(req.body);
+    await newForm.save();
+
+    res.status(200).send("Form submitted successfully.");
+  } catch (error) {
+    console.error("Error saving form data:", error);
+    res.status(500).send("Failed to submit form.");
+  }
+});
+
+
 
 // Start Server
 app.listen(PORT, () => {
