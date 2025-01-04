@@ -30,10 +30,11 @@ mongoose
   .catch((error) => console.error("MongoDB connection error:", error));
 
 // Schema and Model
+// Schema and Model
 const formSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
-  phone: { type: String, unique: true },
+  mobile: { type: String, unique: true }, // Updated from `phone` to `mobile`
   address1: String,
   address2: String,
   address3: String,
@@ -49,15 +50,14 @@ const formSchema = new mongoose.Schema({
 
 const Form = mongoose.model("Form", formSchema);
 
-
 // Routes
 app.post("/submit-form", async (req, res) => {
   try {
-    const { email, phone } = req.body;
+    const { email, mobile } = req.body; // Updated `phone` to `mobile`
 
-    // Check if the email or phone number already exists in the database
+    // Check if the email or mobile number already exists in the database
     const existingForm = await Form.findOne({
-      $or: [{ email }, { phone }],
+      $or: [{ email }, { mobile }], // Updated `phone` to `mobile`
     });
 
     if (existingForm) {
@@ -65,8 +65,8 @@ app.post("/submit-form", async (req, res) => {
       if (existingForm.email === email) {
         errorMessage += "Email is already registered. ";
       }
-      if (existingForm.phone === phone) {
-        errorMessage += "Phone number is already registered.";
+      if (existingForm.mobile === mobile) { // Updated `phone` to `mobile`
+        errorMessage += "Mobile number is already registered.";
       }
       return res.status(400).send(errorMessage.trim());
     }
@@ -81,6 +81,7 @@ app.post("/submit-form", async (req, res) => {
     res.status(500).send("Failed to submit form.");
   }
 });
+
 
 
 
