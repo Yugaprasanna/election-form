@@ -53,11 +53,16 @@ const Form = mongoose.model("Form", formSchema);
 // Routes
 app.post("/submit-form", async (req, res) => {
   try {
-    const { email, mobile } = req.body; // Updated `phone` to `mobile`
+    const { email, mobile } = req.body;
+
+    // Validate mobile number format
+    if (!/^\d{10}$/.test(mobile)) {
+      return res.status(400).send("Mobile number must be exactly 10 digits.");
+    }
 
     // Check if the email or mobile number already exists in the database
     const existingForm = await Form.findOne({
-      $or: [{ email }, { mobile }], // Updated `phone` to `mobile`
+      $or: [{ email }, { mobile }],
     });
 
     if (existingForm) {
@@ -65,7 +70,7 @@ app.post("/submit-form", async (req, res) => {
       if (existingForm.email === email) {
         errorMessage += "Email is already registered. ";
       }
-      if (existingForm.mobile === mobile) { // Updated `phone` to `mobile`
+      if (existingForm.mobile === mobile) {
         errorMessage += "Mobile number is already registered.";
       }
       return res.status(400).send(errorMessage.trim());
@@ -81,6 +86,7 @@ app.post("/submit-form", async (req, res) => {
     res.status(500).send("Failed to submit form.");
   }
 });
+
 
 
 
